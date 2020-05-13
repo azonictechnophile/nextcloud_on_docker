@@ -9,7 +9,7 @@ localhost ansible_connection=local
 nextcloud_server_fqdn       = cloud.example.com
 
 # Your email address (for Let's Encrypt).
-ssl_cert_email              = 
+ssl_cert_email              = ""
 
 ### Nextcloud variables ###
 
@@ -72,12 +72,9 @@ collabora_dictionaries      = 'en'            # Separate ISO 639-1 codes with a 
 # Set to true to install TURN server for Nextcloud Talk.
 talk_install                = false
 
-# Set to true to enable access to your database with Adminer at https://adminer.example.com . The password will be stored in {{ nextcloud_base_dir }}/secrets .
-adminer_enabled             = false
-adminer_server_fqdn         = ''       # If empty playbook will error out if set to true. Example: 'adminer.example.com'
+# Set to true to enable access to your database with Adminer. Adminer will be accessable at server ip address and port 9000. http://192.168.1.1:8080
+adminer_enabled             = true
 
-
-# Set to true to install Portainer webgui for Docker and provide fqdn. Fqdn is required due to portainer being routed through traefik.
-portainer_enabled           = false
+# Set to true to install Portainer webgui for Docker. Portainer will be accessable at server ip address and port 9000. http://192.168.1.1:9000
+portainer_enabled           = true
 portainer_passwd            = ''       # If empty the playbook will generate a random password.
-portainer_server_fqdn       = ''       # If empty playbook will error out if set to true. Example: 'portainer.example.com'

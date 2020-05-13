@@ -3,7 +3,7 @@
 
 - name: "{{ 'Create' if (state is undefined or 'absent' not in state) else 'Terminate' }} traefik network"
   docker_network:
-    name: traefik
+    name: dockerproxy
     state: "{{ state | default('present') }}"
 
 - name: "{{ 'Create' if (state is undefined or 'absent' not in state) else 'Terminate' }} backend network"

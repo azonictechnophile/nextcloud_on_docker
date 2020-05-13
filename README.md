@@ -8,6 +8,8 @@ The playbook runs on x86_64 and ARM(64) servers. It's tested on AWS EC2, Scalewa
 
 Onlyoffice and Collabora work only on a x86_64 server because there are no ARM(64) images.
 
+This script only works with standard nginx, and nextcloud containers. Alpine containers can work but will require changing permissions around. The size difference between alpine and standard images is 100MBs. If you want to run Alpine docker images, you will need to go into the script and change permissions to "82" on Nginx and Nextcloud directory structure, as well as change the nginx conf file to use user "nginx" instead of "www-data".
+
 ## Preparation
 
 Install [Ansible](https://www.ansible.com/) and some needed tools by running the following command with a user that can sudo or is root. 
@@ -47,6 +49,10 @@ Let's Encrypt wants your email address. Enter it here:
 # Your email address (for Let's Encrypt).
 ssl_cert_email              = nextcloud@example.tld
 ```
+### Security NOTE ###
+
+Do not forward ports 9000 or 8080 through your firewall. This will open Portainer and Adminer to the open internet if installed creating a security risk. Only Nextcloud ports 80 and 443 should be port forwarded.
+
 
 ### Nextcloud variables
 
@@ -141,17 +147,15 @@ talk_install                = false
 
 If you want to, you can get access to your database with [Adminer](https://www.adminer.org/). Adminer is a web frontend for your database (like phpMyAdmin).
 ```ini
-# Set to true to enable access to your database with Adminer at https://nextcloud_server_fqdn/adminer. The password will be stored in {{ nextcloud_base_dir }}/secrets.
+# Set to true to enable access to your database with Adminer. Adminer will be accessable at server ip address and port 9000. http://192.168.1.1:8080
 adminer_enabled             = false           # The password will be stored in {{ nextcloud_base_dir }}/secrets.
-adminer_server_fqdn         = ''       # If empty playbook will error out if set to true. Example: 'adminer.example.com'
 ```
 
 You can install [Portainer](https://www.portainer.io/), a webgui for Docker.
 ```ini
-# Set to true to install Portainer webgui for Docker and provide fqdn. Fqdn is required due to portainer being routed through traefik.
+# Set to true to install Portainer webgui for Docker. Portainer will be accessable at server ip address and port 9000. http://192.168.1.1:9000
 portainer_enabled           = false
 portainer_passwd            = ''      # If empty the playbook will generate a random password.
-portainer_server_fqdn       = ''      # If empty playbook will error out if set to true. Example: 'portainer.example.com'
 ```
 If you want to use [rclone](https://rclone.org) to backup your data to a cloud storage provider, remove the variable `restic_repo` from `ìnventory` and edit the file `group_var/all` instead.
 ```ini
@@ -173,7 +177,7 @@ rclone_remote: |
 
 Run the Ansible playbook.
 ```bash
-./nextdocker.yml
+ansible-playbook ./nextdocker.yml
 ```
 
 Your Nextcloud access credentials will be displayed at the end of the run.
@@ -207,7 +211,12 @@ ok: [localhost] => {
 If you are in a hurry you can set the inventory variables on the cli. But remember if you run the playbook again without the -e options all default values will apply and your systems is likely to be broken.
 
 ```bash
-./nextdocker.yml -e "nextcloud_server_fqdn=nextcloud.example.tld nextcloud_db_type=mysql"
+ansible-playbook ./nextdocker.yml -e "nextcloud_server_fqdn=nextcloud.example.tld nextcloud_db_type=mysql"
+```
+
+To reinstall containers run the following command. This will replace any containers that were removed, as long as no docker volumes were removed.
+```bash
+ansible-playbook ./nextdocker.yml --start-at-task="docker_container : docker network"
 ```
 
 ## Expert setup
@@ -235,3 +244,4 @@ Your data won't be deleted. You have to do this manually by executing the follow
 ```bash
 rm -rf {{ nextcloud_base_dir }}
 ```
+ 
